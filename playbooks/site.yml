@@ -50,6 +50,7 @@
         name: "{{ apache_service | default(( 'apache2' if ansible_os_family == 'Debian' else 'httpd')) }}"
         state: started
         enabled: yes
+      when: not ansible_check_mode
 
     - name: "enable apache"
       service:
