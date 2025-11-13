@@ -1,0 +1,4 @@
+# web1 spetsiifilised seadistused
+server_name: "web1-primary"
+max_clients: 256
+custom_document_root: "/var/www/primary"

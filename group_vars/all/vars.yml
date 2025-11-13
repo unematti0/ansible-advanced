@@ -1,12 +1,20 @@
 # Kõikidele serveritele ühised seadistused
 app_name: "advanced-lamp"
 app_version: "1.0.0"
-admin_email: "mattias.elmers@gmail.com"
+admin_email: "admin@company.com"
+
 # OS-spetsiifilised paketid (dünaamilised)
-apache_package: apache2
-apache_service: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
-mysql_package: mysql-server
+apache_package: "{% if ansible_os_family == 'Debian' %}apache2{% else %}httpd{% endif %}"
+mysql_package: "{% if ansible_os_family == 'Debian' %}mysql-server{% else %}mariadb-server{% endif %}"
+
 # Keskkonna sõltuvad seadistused
 backup_enabled: "{{ app_env == 'production' }}"
 monitoring_enabled: "{{ app_env == 'production' }}"
 log_level: "{% if debug_mode %}DEBUG{% else %}INFO{% endif %}"
+
+# Vault viited
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_app_password: "{{ vault_mysql_app_password }}"
+ssl_cert_path: "{{ vault_ssl_cert_path }}"
+ssl_key_path: "{{ vault_ssl_key_path }}"
+admin_password: "{{ vault_admin_password }}"

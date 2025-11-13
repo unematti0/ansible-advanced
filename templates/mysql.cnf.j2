@@ -6,9 +6,11 @@
 # Basic settings
 port = {{ mysql_port }}
 bind-address = {{ mysql_bind_address }}
+
 # Performance tuning based on available memory
 innodb_buffer_pool_size = {{ mysql_innodb_buffer_pool_size }}
 max_connections = {{ mysql_max_connections }}
+
 # Environment-specific settings
 {% if app_env == 'production' %}
 # Production optimizations
@@ -19,6 +21,7 @@ sync_binlog = 1
 innodb_flush_log_at_trx_commit = 2
 sync_binlog = 0
 {% endif %}
+
 # Logging
 {% if debug_mode %}
 general_log = 1
@@ -26,4 +29,11 @@ general_log_file = /var/log/mysql/general.log
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/slow.log
 long_query_time = 1
+{% endif %}
+
+{% if app_env == 'production' %}
+# Production SSL settings
+ssl-ca={{ ssl_cert_path }}
+ssl-cert={{ ssl_cert_path }}
+ssl-key={{ ssl_key_path }}
 {% endif %}

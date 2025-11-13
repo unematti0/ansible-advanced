@@ -1,25 +1,30 @@
 ---
-- name: "LAMP Stack Deployment with Advanced Configuration"
-  hosts: all
+- name: "Advanced LAMP Stack Deployment"
+  hosts: webservers
   become: yes
   gather_facts: yes
+  
   tasks:
-
     - name: "Update package cache"
       package:
         update_cache: yes
       when: ansible_os_family == "Debian"
-    - name: "Install Apache"
-      ansible.builtin.package:
-        name: "{{ apache_package | default(( 'apache2' if ansible_os_family == 'Debian' else 'httpd')) }}"
+      
+    - name: "Install Nginx"
+      package:
+        name: nginx
         state: present
-      become: true
-      when: ansible_os_family == "Debian"
       notify:
-
-        - "start apache"
-        - "enable apache"
-    - name: "Create virtual host directories"
+        - "enable nginx"
+        - "start nginx"
+        
+    - name: "Install PHP"
+      package:
+        name: "php{{ php_version }}-fpm"
+        state: present
+      notify: "restart php-fpm"
+      
+    - name: "Create web directories"
       file:
         path: "{{ item.document_root }}"
         state: directory
@@ -27,42 +32,75 @@
         group: www-data
         mode: '0755'
       loop: "{{ virtual_hosts }}"
-      when: virtual_hosts is defined
-    - name: "Generate virtual host configurations"
+      
+    - name: "Generate Nginx configurations"
       template:
-        src: apache_vhost.conf.j2
-        dest: "/etc/apache2/sites-available/{{ item.name }}.conf"
+        src: nginx.conf.j2
+        dest: "/etc/nginx/sites-available/{{ item.name }}"
         backup: yes
       loop: "{{ virtual_hosts }}"
-      notify: "reload apache"
-      when: virtual_hosts is defined
-    - name: "Enable virtual hosts"
-      command: "a2ensite {{ item.name }}"
-      args:
-        creates: "/etc/apache2/sites-enabled/{{ item.name }}.conf"
+      notify: "reload nginx"
+      
+    - name: "Enable sites"
+      file:
+        src: "/etc/nginx/sites-available/{{ item.name }}"
+        dest: "/etc/nginx/sites-enabled/{{ item.name }}"
+        state: link
       loop: "{{ virtual_hosts }}"
-      notify: "reload apache"
-      when: virtual_hosts is defined
+      notify: "reload nginx"
+      
+    - name: "Deploy index.html"
+      template:
+        src: index.html.j2
+        dest: "{{ item.document_root }}/index.html"
+      loop: "{{ virtual_hosts }}"
+      
   handlers:
-
-    - name: "start apache"
-      ansible.builtin.service:
-        name: "{{ apache_service | default(( 'apache2' if ansible_os_family == 'Debian' else 'httpd')) }}"
+    - name: "start nginx"
+      service:
+        name: nginx
         state: started
-        enabled: yes
-      when: not ansible_check_mode
-
-    - name: "enable apache"
+        
+    - name: "enable nginx"
       service:
-        name: "{{ apache_package }}"
+        name: nginx
         enabled: yes
-
-    - name: "reload apache"
+        
+    - name: "reload nginx"
       service:
-        name: "{{ apache_package }}"
+        name: nginx
         state: reloaded
-
-    - name: "restart apache"
+        
+    - name: "restart php-fpm"
       service:
-        name: "{{ apache_package }}"
+        name: "php{{ php_version }}-fpm"
+        state: restarted
+
+- name: "Database Server Configuration"
+  hosts: dbservers
+  become: yes
+  
+  tasks:
+    - name: "Install MySQL"
+      package:
+        name: "{{ mysql_package }}"
+        state: present
+      notify: "start mysql"
+      
+    - name: "Generate MySQL configuration"
+      template:
+        src: mysql.cnf.j2
+        dest: "/etc/mysql/mysql.conf.d/99-custom.cnf"
+        backup: yes
+      notify: "restart mysql"
+      
+  handlers:
+    - name: "start mysql"
+      service:
+        name: mysql
+        state: started
+        
+    - name: "restart mysql"
+      service:
+        name: mysql
         state: restarted

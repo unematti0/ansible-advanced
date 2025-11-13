@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - {{ app_env }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { background: #f4f4f4; padding: 20px; border-radius: 5px; }
+        .info { margin: 20px 0; }
+        .env-development { border-left: 5px solid #28a745; }
+        .env-production { border-left: 5px solid #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="header {% if app_env == 'development' %}env-development{% else %}env-production{% endif %}">
+        <h1>Welcome to {{ app_name }}</h1>
+        <p>Environment: <strong>{{ app_env }}</strong></p>
+        <p>Server: <strong>{{ inventory_hostname }}</strong></p>
+    </div>
+    
+    <div class="info">
+        <h2>Server Information</h2>
+        <ul>
+            <li>Application: {{ app_name }} v{{ app_version }}</li>
+            <li>Debug Mode: {{ debug_mode }}</li>
+            <li>SSL Enabled: {{ ssl_enabled }}</li>
+            <li>Generated: {{ ansible_date_time.iso8601 }}</li>
+        </ul>
+    </div>
+    
+    {% if debug_mode %}
+    <div class="info" style="background: #fff3cd; padding: 15px; border-radius: 5px;">
+        <h3>Debug Information</h3>
+        <p>This section is only visible in development environment.</p>
+        <ul>
+            <li>PHP Version: {{ php_version }}</li>
+            <li>Memory Limit: {{ php_memory_limit }}</li>
+            <li>Max Execution Time: {{ php_max_execution_time }}s</li>
+        </ul>
+    </div>
+    {% endif %}
+</body>
+</html>

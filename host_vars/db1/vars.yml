@@ -1,0 +1,4 @@
+# db1 spetsiifilised seadistused
+mysql_replication_role: "master"
+innodb_log_file_size: "256M"
+query_cache_size: "64M"
