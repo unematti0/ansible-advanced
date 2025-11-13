@@ -4,6 +4,7 @@ app_version: "1.0.0"
 admin_email: "mattias.elmers@gmail.com"
 # OS-spetsiifilised paketid (dünaamilised)
 apache_package: apache2
+apache_service: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
 mysql_package: mysql-server
 # Keskkonna sõltuvad seadistused
 backup_enabled: "{{ app_env == 'production' }}"

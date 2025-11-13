@@ -46,9 +46,10 @@
   handlers:
 
     - name: "start apache"
-      service:
-        name: "{{ apache_package }}"
+      ansible.builtin.service:
+        name: "{{ apache_service | default(( 'apache2' if ansible_os_family == 'Debian' else 'httpd')) }}"
         state: started
+        enabled: yes
 
     - name: "enable apache"
       service:
